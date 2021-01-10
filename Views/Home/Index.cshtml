@@ -1,0 +1,181 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+
+<div class="row">
+
+    <div id="Editbox" style="margin-top:10px;">
+        <div class="panel panel-primary">
+
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Weather
+                </div>
+
+            </div>
+
+            <div class="panel-body">
+
+                @*<form method="post" action="" id="msform">*@
+                <div id="msform">
+                    <fieldset>
+                        <div class="col-md-12">
+                            <div class="form-group col-md-4">
+                                <label class="control-label">City Name</label>
+                                <input type="text" id="city" class="form-control" />
+                            </div>
+                            <div class="form-group col-md-4" style="text-align:right;">
+                                <br />
+                                <input type="submit" value="Submit" id="btnSubmit" class="btn btn-success" />
+                            </div>
+                            <div class="form-group col-md-4" style="text-align:right;">
+                                <br />
+                                <input type="submit" value="Clear" id="btnClear" class="btn btn-danger" />
+                            </div>
+                        </div>
+                        <span id="ErrMsg" style="color:red;"></span>
+                    </fieldset>
+                </div>
+                <div>
+
+                </div>
+                @*</form>*@
+            </div>
+        </div>
+    </div>
+
+    <div id="LiveWeather" style="margin-top:10px;display:none;">
+        <div class="panel panel-primary">
+
+            <div class="panel-heading">
+                <div class="panel-title">
+                    Live Weather Information
+                </div>
+
+            </div>
+
+            <div class="panel-body">
+
+                <div id="msform">
+                    <fieldset>
+                        <div class="col-md-12">
+
+                            <div class="form-group col-md-6">
+
+                                <p>
+
+                                    <span><b>City : </b></span> <span id="TempCity"></span><br />
+                                    <span><b>Time : </b></span> <span id="TempTime"></span><br />
+                                    <span><b>Description : </b></span> <span id="TempDes"></span><br />
+                                    <img src="" id="tempImg" />
+
+                                </p>
+                            </div>
+
+                            <div class="form-group col-md-6">
+
+                                <p>
+                                    <span><b>Temperature : </b></span> <span id="Temp"></span><br />
+                                    <span><b>Temperature (Min) : </b></span> <span id="TempMin"></span><br />
+                                    <span><b>Temperature (Max) : </b></span> <span id="TempMax"></span><br />
+                                    <span><b>Humidity : </b></span> <span id="TempHumidity"></span> <br />
+                                    <span><b>Wind Speed : </b></span> <span id="TempWindSpeed"></span>
+                                </p>
+
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+</div>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#btnSubmit").click(function () {
+
+            var city = $("#city").val();
+
+            if (city.length > 0) {
+
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("WeatherInfo", "Home")',
+                    contentType: "application/json; charset=utf-8",
+                    data: '{"city":"' + $("#city").val() + '"}',
+                    dataType: "json",
+                    success: function (result) {
+                       // console.log("Result : " + JSON.parse(result));
+                        var data = JSON.stringify(result);
+                        console.log("Result : " + result.count);
+                        if (result.Temp != null) {
+                            //$("#dataDiv").html(result);
+                            $("#TempDes").text(result.Description);
+                            $("#Temp").text(result.Temp);
+                            $("#TempMin").text(result.TempMin);
+                            $("#TempMax").text(result.TempMax);
+                            $("#TempHumidity").text(result.Humidity);
+                            $("#TempCity").text(result.Country);
+                            $("#tempImg").attr("src", result.ImageWeatherIcon);                           
+                            $("#TempTime").text(getCurrentDay(new Date));
+                            $("#TempWindSpeed").text(result.WindSpeed);
+
+                            $("#ErrMsg").html("");
+                            $("#LiveWeather").show();
+                                                       
+                        }
+                        else {
+
+                            $("#LiveWeather").hide();
+                            $("#ErrMsg").html("No data found for this city.");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        $("#LiveWeather").hide();
+                        $("#ErrMsg").html("Result: " + status + " " + error + " " + xhr.status + " " + xhr.statusText)
+                    }
+                });
+            }
+            else {
+                $("#ErrMsg").html("Please enter city.");
+                $("#LiveWeather").hide();
+            }
+        });
+
+
+        function getCurrentDay(date) {
+
+            var hours = date.getHours();
+           
+            var ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;           
+
+            var days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+            var strTime = days[date.getDay()] + ", "  + hours + ':00' + ' ' + ampm;
+
+            return strTime;
+
+        }
+
+
+
+        $("#btnClear").click(function () {
+
+            $("#city").val("");
+            $("#LiveWeather").hide();
+
+        });
+
+    });
+</script>
